@@ -1,0 +1,1036 @@
+{
+  "uid": "rlt-overview",
+  "title": "RLT Analytics",
+  "tags": [
+    "rlt"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Доступность источников",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"support_service|alpharag\"}",
+          "legendFormat": "{{job}}",
+          "range": false,
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "1 — scrape успешен, 0 — источник недоступен."
+    },
+    {
+      "id": 2,
+      "title": "Закрытые диалоги за выбранный период",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(support_chat_lifetime_seconds_count{job=\"support_service\",line=~\"$line\"}[$__range]))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "Оценка прироста счётчика Prometheus, может быть дробной."
+    },
+    {
+      "id": 3,
+      "title": "Средняя длительность закрытого диалога",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (line) (rate(support_chat_lifetime_seconds_sum{job=\"support_service\",line=~\"$line\"}[$__rate_interval])) / sum by (line) (rate(support_chat_lifetime_seconds_count{job=\"support_service\",line=~\"$line\"}[$__rate_interval]))",
+          "legendFormat": "Линия {{line}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 4,
+      "title": "P95 длительности закрытого диалога",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, line) (rate(support_chat_lifetime_seconds_bucket{job=\"support_service\",line=~\"$line\"}[$__rate_interval])))",
+          "legendFormat": "Линия {{line}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 5,
+      "title": "Среднее время первого ответа по текущей оценке",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (line, rating) (support_first_response_seconds_sum{job=\"support_service\",line=~\"$line\"}) / sum by (line, rating) (support_first_response_seconds_count{job=\"support_service\",line=~\"$line\"})",
+          "legendFormat": "Линия {{line}}, оценка {{rating}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": "Снимок за всё время, а не прирост за выбранный период. none — без оценки. При изменении оценки диалог переходит в другую группу; rate() неприменим."
+    },
+    {
+      "id": 6,
+      "title": "Средняя оценка за выбранный период",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (line) (increase(support_feedback_score_total{job=\"support_service\",line=~\"$line\"}[$__range])) / sum by (line) (increase(support_feedback_total{job=\"support_service\",line=~\"$line\"}[$__range]))",
+          "legendFormat": "Линия {{line}}",
+          "range": false,
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "Изменённая оценка считается новым наблюдением. Без новых оценок — No data."
+    },
+    {
+      "id": 7,
+      "title": "Оценки за выбранный период",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (line, rating) (increase(support_feedback_total{job=\"support_service\",line=~\"$line\"}[$__range]))",
+          "legendFormat": "Линия {{line}}, оценка {{rating}}",
+          "range": false,
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 8,
+      "title": "AlphaRAG: HTTP запросов/с",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (method, route) (rate(alpharag_http_requests_total{job=\"alpharag\"}[$__rate_interval]))",
+          "legendFormat": "{{method}} {{route}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 9,
+      "title": "AlphaRAG: HTTP по статусам",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (rate(alpharag_http_requests_total{job=\"alpharag\"}[$__rate_interval]))",
+          "legendFormat": "{{status}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 10,
+      "title": "AlphaRAG: доля HTTP 5xx",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(alpharag_http_requests_total{job=\"alpharag\",status=~\"5..\"}[$__rate_interval]) or (0 * rate(alpharag_http_requests_total{job=\"alpharag\"}[$__rate_interval]))) / sum(rate(alpharag_http_requests_total{job=\"alpharag\"}[$__rate_interval]))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 11,
+      "title": "AlphaRAG: WebSocket команд/с",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (event) (rate(alpharag_ws_commands_total{job=\"alpharag\"}[$__rate_interval]))",
+          "legendFormat": "{{event}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": "Валидированные команды, успешно поставленные в Redis. PING исключён."
+    },
+    {
+      "id": 12,
+      "title": "AlphaRAG: HTTP запросы за выбранный период",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(alpharag_http_requests_total{job=\"alpharag\"}[$__range]))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": ""
+    },
+    {
+      "id": 13,
+      "title": "Бот: лайки и дизлайки",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (reaction) (alpharag_bot_reactions{job=\"alpharag\",reaction=~\"like|dislike\"})",
+          "legendFormat": "{{reaction}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Текущие реакции на сохранённые ответы бота за всё время. Смена и снятие реакции меняют значение; rate/increase неприменимы.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 14,
+      "title": "Поддержка: обращения по L1 / L2 / L3",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (line) (support_requests{job=\"support_service\"})",
+          "legendFormat": "{{line}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Все сохранённые обращения по назначенной линии оператора, включая открытые и исторические. Не количество сообщений и не число операторов. Все три линии присутствуют, включая нулевые.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 15,
+      "title": "Бот: вопросы по темам — всего",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 0,
+        "y": 56,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (topic) (alpharag_questions_total{job=\"alpharag\"})",
+          "legendFormat": "{{topic}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Классифицированные запросы с момента включения метрики. Темы GraphRAG; other — прочие вопросы по теме, off_topic — вне тематики, blocked — модерация, operator_request — запрос оператора. Старые сообщения не классифицируются задним числом.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fas_complaint_44fz"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Порядок подачи жалобы в ФАС России по 44-ФЗ через ЕИС Закупки"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "portal_complaint_arbitration"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как обжаловать блокировку на Портале поставщиков?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "registration_portal"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как зарегистрироваться на Портале поставщиков?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "registration_eruz"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Регистрация поставщика в ЕРУЗ / ЕИС по 44-ФЗ"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "registration_44fz"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Регистрация поставщика в ЕИС по 44-ФЗ"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "quotation_session"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как проходит котировочная сессия?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "contract_execution_upd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Исполнение контракта"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ecp_cryptopro"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как произвести настройку плагина КРИПТОПРО?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bank_guarantee"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Инструкция по работе с банковскими гарантиями"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "system_error_troubleshooting"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Необходимые действия при сбое в работе Подсистемы"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zmo_procurement_rules"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Что такое закупки малого объема (ЗМО) на Портале поставщиков?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "other"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Прочие вопросы по теме"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "off_topic"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Вне тематики"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "blocked"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Модерация"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "operator_request"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Запрос оператора"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 16,
+      "title": "Бот: вопросы по темам за период",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 12,
+        "y": 56,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (topic) (increase(alpharag_questions_total{job=\"alpharag\"}[$__range]))",
+          "legendFormat": "{{topic}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "description": "Оценка прироста за выбранный период; нужны минимум два scrape. На первой точке новая серия ещё не имеет истории.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fas_complaint_44fz"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Порядок подачи жалобы в ФАС России по 44-ФЗ через ЕИС Закупки"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "portal_complaint_arbitration"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как обжаловать блокировку на Портале поставщиков?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "registration_portal"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как зарегистрироваться на Портале поставщиков?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "registration_eruz"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Регистрация поставщика в ЕРУЗ / ЕИС по 44-ФЗ"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "registration_44fz"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Регистрация поставщика в ЕИС по 44-ФЗ"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "quotation_session"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как проходит котировочная сессия?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "contract_execution_upd"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Исполнение контракта"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ecp_cryptopro"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Как произвести настройку плагина КРИПТОПРО?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bank_guarantee"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Инструкция по работе с банковскими гарантиями"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "system_error_troubleshooting"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Необходимые действия при сбое в работе Подсистемы"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "zmo_procurement_rules"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Что такое закупки малого объема (ЗМО) на Портале поставщиков?"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "other"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Прочие вопросы по теме"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "off_topic"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Вне тематики"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "blocked"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Модерация"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "operator_request"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Запрос оператора"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "line",
+        "label": "Линия поддержки",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(support_first_response_seconds_count{job=\"support_service\"}, line)",
+        "refresh": 1,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  }
+}

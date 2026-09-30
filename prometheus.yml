@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 30s
+  scrape_timeout: 10s
+  evaluation_interval: 30s
+
+scrape_configs:
+  - job_name: support_service
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:8067']
+  - job_name: alpharag
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:8000']
